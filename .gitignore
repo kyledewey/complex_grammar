@@ -1,0 +1,7 @@
+# Compiled files
+*.class
+target
+
+# Emacs temp files
+*~
+\#*\#
