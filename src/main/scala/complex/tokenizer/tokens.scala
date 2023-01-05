@@ -39,6 +39,7 @@ case object ElseToken extends Token
 case object WhileToken extends Token
 case object ReturnToken extends Token
 case object PrintToken extends Token
+case object ClassToken extends Token
 case object InitToken extends Token
 case object SuperToken extends Token
 case object ExtendsToken extends Token

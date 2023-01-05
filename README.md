@@ -48,7 +48,7 @@ stmt ::= param `=` exp `;` |                                     // variable dec
 consDef ::= `init` `(` params `)` `{` [`super` `(` exps `)` `;`] stmt* `}`
 methodDef ::= type var `(` params `)` `{` stmt* `}`
 cls ::= `class` clsName [`extends` clsName] `{` params consDef methodDef* `}
-program ::= cls `{` stmt* `}`
+program ::= cls* `{` stmt* `}`
 ```
 
 ## Tokens ##
@@ -117,9 +117,9 @@ exps ::= epsilon | multiExp
 primaryExp ::= var | i | `true` | `false` | `(` exp `)` |
                `new` clsName `(` exps `)` |
                `new` type `[` exp `]`
-dotExp ::= primaryExp (`.` primaryExp)*
-callKind ::= `[` exp `]` | `(` exps `)`
-callOrArrayExp ::= dotExp (callKind)*
+dotExp ::= primaryExp (`.` var)*
+callOrArrayKind ::= `(` exps `)` | `[` exp `]`
+callOrArrayExp ::= dotExp (callOrArrayKind)*
 unopExp ::= (`-` | `!`)* callOrArrayExp
 castExp ::= (`(` type `)`)* unopExp
 multExp ::= castExp ((`*` | `/`) castExp)*
@@ -140,8 +140,8 @@ stmt ::= param `=` exp `;` |                                     // variable dec
          `print` `(` exp `)`                                     // printing
 consDef ::= `init` `(` params `)` `{` [`super` `(` exps `)` `;`] stmt* `}`
 methodDef ::= type var `(` params `)` `{` stmt* `}`
-cls ::= `class` clsName [`extends` clsName] `{` params consDef methodDef* `}
-program ::= cls `{` stmt* `}`
+classDef ::= `class` clsName [`extends` clsName] `{` params consDef methodDef* `}
+program ::= classDef* `{` stmt* `}`
 ```
 
 (Object)new Foo()
