@@ -109,4 +109,88 @@ class ComplexParserTest extends AnyFlatSpec {
       parse("this", exp)
     }
   }
+
+  it should "parse array access" in {
+    assertResult(
+      ArrayAccessExp(
+        VariableExp(Variable("arr")),
+        IntLiteralExp(0))) {
+      parse("arr[0]", exp)
+    }
+  }
+
+  def assertBinop(opString: String, bop: Bop) {
+    assertResult(
+      BinaryOperationExp(
+        IntLiteralExp(1),
+        bop,
+        IntLiteralExp(2))) {
+      parse(s"1 $opString 2", exp)
+    }
+  }
+
+  it should "parse addition" in {
+    assertBinop("+", PlusBop)
+  }
+
+  it should "parse subtraction" in {
+    assertBinop("-", MinusBop)
+  }
+
+  it should "parse multiplication" in {
+    assertBinop("*", MultBop)
+  }
+
+  it should "parse division" in {
+    assertBinop("/", DivBop)
+  }
+
+  it should "parse logical and" in {
+    assertBinop("&&", LogicalAndBop)
+  }
+
+  it should "parse logical or" in {
+    assertBinop("||", LogicalOrBop)
+  }
+
+  it should "parse <" in {
+    assertBinop("<", LessThanBop)
+  }
+
+  it should "parse <=" in {
+    assertBinop("<=", LessThanOrEqualsBop)
+  }
+
+  it should "parse >" in {
+    assertBinop(">", GreaterThanBop)
+  }
+
+  it should "parse >=" in {
+    assertBinop(">=", GreaterThanOrEqualsBop)
+  }
+
+  it should "parse ==" in {
+    assertBinop("==", EqualsBop)
+  }
+
+  it should "parse !=" in {
+    assertBinop("!=", NotEqualsBop)
+  }
+  
+  def assertUnop(opString: String, unop: Unop) {
+    assertResult(
+      UnaryOperationExp(
+        unop,
+        IntLiteralExp(3))) {
+      parse(s"$opString 3", exp)
+    }
+  }
+
+  it should "parse logical not" in {
+    assertUnop("!", LogicalNotUnop)
+  }
+
+  it should "parse unary minus" in {
+    assertUnop("-", NegationUnop)
+  }
 }

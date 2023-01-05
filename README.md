@@ -127,7 +127,9 @@ addExp ::= multExp ((`+` | `-`) multExp)*
 relationalExp ::= addExp ((`<` | `<=` | `>` | `>=`) addExp)*
 equalsKind ::= (`==` | `!=`) relationalExp | `instanceof` clsName
 equalsExp ::= relationalExp equalsKind*
-functionExp ::= (`(` params `)` `=>`)* equalsExp
+andExp ::= equalsExp (`&&` equalsExp)*
+orExp ::= andExp (`||` andExp)*
+functionExp ::= (`(` params `)` `=>`)* orExp
 exp ::= functionExp
 lhs ::= var |            // lefthand side of an assignment
         exp `.` var    | // access field

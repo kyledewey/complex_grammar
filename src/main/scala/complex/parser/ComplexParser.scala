@@ -180,8 +180,20 @@ object ComplexParser {
       cur.toExp(accum)) }
   }
 
+  lazy val andExp: P[Exp] = {
+    binop(
+      equalsExp,
+      token(LogicalAndToken) ^^^ LogicalAndBop)
+  }
+
+  lazy val orExp: P[Exp] = {
+    binop(
+      andExp,
+      token(LogicalOrToken) ^^^ LogicalOrBop)
+  }
+
   lazy val functionExp: P[Exp] = {
-    rep(inParens(params) ~ token(ArrowToken)) ~ equalsExp ^^
+    rep(inParens(params) ~ token(ArrowToken)) ~ orExp ^^
     { case reps ~ body => reps.foldRight(body)((cur, accum) =>
       FunctionExp(cur._1, accum)) }
   }
