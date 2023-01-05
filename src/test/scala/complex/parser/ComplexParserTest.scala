@@ -193,4 +193,338 @@ class ComplexParserTest extends AnyFlatSpec {
   it should "parse unary minus" in {
     assertUnop("-", NegationUnop)
   }
+
+  it should "parse instanceof" in {
+    assertResult(
+      InstanceofExp(
+        VariableExp(Variable("x")),
+        ClassName("Foo"))) {
+      parse("x instanceof Foo", exp)
+    }
+  }
+
+  it should "parse object access" in {
+    assertResult(
+      ObjectAccessExp(
+        VariableExp(Variable("foo")),
+        Variable("bar"))) {
+      parse("foo.bar", exp)
+    }
+  }
+
+  it should "parse new object creation" in {
+    assertResult(
+      NewObjectExp(
+        ClassName("MyClass"),
+        Seq(IntLiteralExp(1), IntLiteralExp(2)))) {
+      parse("new MyClass(1, 2)", exp)
+    }
+  }
+
+  it should "parse new array creation" in {
+    assertResult(
+      NewArrayExp(
+        ClassType(ClassName("MyClass")),
+        IntLiteralExp(5))) {
+      parse("new MyClass[5]", exp)
+    }
+  }
+
+  it should "parse casting" in {
+    assertResult(
+      CastExp(
+        ClassType(ClassName("MyClass")),
+        VariableExp(Variable("obj")))) {
+      parse("(MyClass)obj", exp)
+    }
+  }
+
+  it should "parse multiple casts" in {
+    assertResult(
+      CastExp(
+        ClassType(ClassName("Object")),
+        CastExp(
+          ClassType(ClassName("MyClass")),
+          VariableExp(Variable("obj"))))) {
+      parse("(Object)(MyClass)obj", exp)
+    }
+  }
+
+  it should "parse function creation" in {
+    assertResult(
+      FunctionExp(
+        Seq(Param(IntType, Variable("x"))),
+        VariableExp(Variable("x")))) {
+      parse("(int x) => x", exp)
+    }
+  }
+
+  it should "parse nested function creation" in {
+    assertResult(
+      FunctionExp(
+        Seq(Param(IntType, Variable("x"))),
+        FunctionExp(
+          Seq(Param(BoolType, Variable("y"))),
+          BinaryOperationExp(
+            VariableExp(Variable("x")),
+            PlusBop,
+            VariableExp(Variable("y")))))) {
+      parse("(int x) => (bool y) => x + y", exp)
+    }
+  }
+
+  it should "parse a basic call" in {
+    assertResult(
+      CallExp(
+        VariableExp(Variable("foo")),
+        Seq(VariableExp(Variable("bar"))))) {
+      parse("foo(bar)", exp)
+    }
+  }
+
+  it should "parse a method-like call" in {
+    assertResult(
+      CallExp(
+        ObjectAccessExp(
+          VariableExp(Variable("obj")),
+          Variable("myMethod")),
+        Seq(VariableExp(Variable("foo"))))) {
+      parse("obj.myMethod(foo)", exp)
+    }
+  }
+
+  it should "parse a chain of calls" in {
+    assertResult(
+      CallExp(
+        CallExp(
+          CallExp(
+            VariableExp(Variable("foo")),
+            Seq(VariableExp(Variable("bar")))),
+          Seq(VariableExp(Variable("baz")))),
+        Seq(VariableExp(Variable("blah"))))) {
+      parse("foo(bar)(baz)(blah)", exp)
+    }
+  }
+
+  it should "parse parenthesized expressions" in {
+    assertResult(
+      BinaryOperationExp(
+        IntLiteralExp(2),
+        MultBop,
+        BinaryOperationExp(
+          IntLiteralExp(3),
+          PlusBop,
+          IntLiteralExp(4)))) {
+      parse("2 * (3 + 4)", exp)
+    }
+  }
+
+  it should "handle precedence - array access vs. object access" in {
+    assertResult(
+      ArrayAccessExp(
+        ObjectAccessExp(
+          VariableExp(Variable("foo")),
+          Variable("blah")),
+        IntLiteralExp(5))) {
+      parse("foo.blah[5]", exp)
+    }
+  }
+
+  it should "handle precedence - calls vs. array access" in {
+    assertResult(
+      ArrayAccessExp(
+        CallExp(
+          ArrayAccessExp(
+            CallExp(
+              VariableExp(Variable("foo")),
+              Seq(IntLiteralExp(1))),
+            IntLiteralExp(2)),
+          Seq(IntLiteralExp(3))),
+        IntLiteralExp(4))) {
+      parse("foo(1)[2](3)[4]", exp)
+    }
+  }
+
+  it should "handle precedence - unary vs. binary operations" in {
+    assertResult(
+      BinaryOperationExp(
+        UnaryOperationExp(
+          LogicalNotUnop,
+          VariableExp(Variable("x"))),
+        LogicalAndBop,
+        BoolLiteralExp(true))) {
+      parse("!x && true", exp)
+    }
+  }
+
+  it should "handle precedence - multiplications vs. addition" in {
+    assertResult(
+      BinaryOperationExp(
+        BinaryOperationExp(
+          IntLiteralExp(1),
+          PlusBop,
+          BinaryOperationExp(
+            IntLiteralExp(2),
+            MultBop,
+            IntLiteralExp(3))),
+        MinusBop,
+        IntLiteralExp(4))) {
+      // (1 + (2 * 3)) - 4
+      parse("1 + 2 * 3 - 4", exp)
+    }
+  }
+
+  it should "handle precedence - addition vs. multiplication vs. relational" in {
+    assertResult(
+      BinaryOperationExp(
+        BinaryOperationExp(
+          IntLiteralExp(1),
+          PlusBop,
+          IntLiteralExp(2)),
+        LessThanBop,
+        BinaryOperationExp(
+          IntLiteralExp(3),
+          MultBop,
+          IntLiteralExp(4)))) {
+      parse("1 + 2 < 3 * 4", exp)
+    }
+  }
+
+  it should "handle precedence - relational vs. equals" in {
+    assertResult(
+      BinaryOperationExp(
+        BinaryOperationExp(
+          VariableExp(Variable("x")),
+          LessThanBop,
+          VariableExp(Variable("y"))),
+        EqualsBop,
+        BinaryOperationExp(
+          VariableExp(Variable("a")),
+          GreaterThanBop,
+          VariableExp(Variable("b"))))) {
+      parse("x < y == a > b", exp)
+    }
+  }
+
+  it should "handle precedence - instanceof vs. equals" in {
+    assertResult(
+      BinaryOperationExp(
+        InstanceofExp(
+          BinaryOperationExp(
+            VariableExp(Variable("x")),
+            EqualsBop,
+            VariableExp(Variable("y"))),
+          ClassName("MyClass")),
+        EqualsBop,
+        VariableExp(Variable("z")))) {
+      // ((x == y) instanceof MyClass) == z
+      parse("x == y instanceof MyClass == z", exp);
+    }
+  }
+
+  it should "handle precedence - && vs. ||" in {
+    assertResult(
+      BinaryOperationExp(
+        BinaryOperationExp(
+          BinaryOperationExp(
+            VariableExp(Variable("x")),
+            LogicalAndBop,
+            VariableExp(Variable("y"))),
+          LogicalOrBop,
+          BinaryOperationExp(
+            VariableExp(Variable("a")),
+            LogicalAndBop,
+            VariableExp(Variable("b")))),
+        LogicalOrBop,
+        BinaryOperationExp(
+          VariableExp(Variable("c")),
+          LogicalAndBop,
+          VariableExp(Variable("d"))))) {
+      // ((x && y) || (a && b)) || (c && d)
+      parse("x && y || a && b || c && d", exp)
+    }
+  }
+
+  it should "handle lhs - variables" in {
+    assertResult(VariableLhs(Variable("x"))) {
+      parse("x", lhs)
+    }
+  }
+
+  it should "handle lhs - object access" in {
+    assertResult(
+      ObjectAccessLhs(
+        VariableExp(Variable("obj")),
+        Variable("x"))) {
+      parse("obj.x", lhs)
+    }
+  }
+
+  it should "handle lhs - array access" in {
+    assertResult(
+      ArrayAccessLhs(
+        VariableExp(Variable("arr")),
+        VariableExp(Variable("x")))) {
+      parse("arr[x]", lhs)
+    }
+  }
+
+  it should "handle vardec" in {
+    assertResult(
+      VardecStmt(Param(IntType, Variable("x")), IntLiteralExp(7))) {
+      parse("int x = 7;", stmt)
+    }
+  }
+
+  it should "handle assignment" in {
+    assertResult(
+      AssignStmt(
+        VariableLhs(Variable("x")),
+        VariableExp(Variable("y")))) {
+      parse("x = y;", stmt)
+    }
+  }
+
+  it should "handle if - no else" in {
+    assertResult(
+      IfStmt(
+        BoolLiteralExp(true),
+        Seq(VardecStmt(Param(IntType, Variable("x")), IntLiteralExp(7))),
+        None)) {
+      parse("if (true) { int x = 7; }", stmt)
+    }
+  }
+
+  it should "handle if - with else" in {
+    assertResult(
+      IfStmt(
+        BoolLiteralExp(true),
+        Seq(VardecStmt(Param(IntType, Variable("x")), IntLiteralExp(7))),
+        Some(Seq(VardecStmt(Param(IntType, Variable("x")), IntLiteralExp(8)))))) {
+      parse("if (true) { int x = 7; } else { int x = 8; }", stmt)
+    }
+  }
+
+  it should "handle while" in {
+    assertResult(
+      WhileStmt(
+        BoolLiteralExp(true),
+        Seq(VardecStmt(Param(IntType, Variable("x")), IntLiteralExp(7))))) {
+      parse("while (true) { int x = 7; }", stmt)
+    }
+  }
+
+  it should "handle return" in {
+    assertResult(
+      ReturnStmt(IntLiteralExp(7))) {
+      parse("return 7;", stmt)
+    }
+  }
+
+  it should "handle print" in {
+    assertResult(
+      PrintStmt(IntLiteralExp(7))) {
+      parse("print(7);", stmt)
+    }
+  }
 }

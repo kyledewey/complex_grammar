@@ -43,6 +43,7 @@ object Tokenizer {
       ("else", ElseToken),
       ("while", WhileToken),
       ("return", ReturnToken),
+      ("print", PrintToken),
       ("init", InitToken),
       ("super", SuperToken),
       ("extends", ExtendsToken))

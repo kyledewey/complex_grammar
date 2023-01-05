@@ -163,3 +163,5 @@ obj.someMethod(7)
 Call(Access(obj, someMethod), List(7))
 
 Is obj.someMethod a method, or is it a function?  No idea - need the typechecker to disambiguate.
+
+((x == y) instanceof Boolean) == z
