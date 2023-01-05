@@ -44,6 +44,7 @@ object Tokenizer {
       ("while", WhileToken),
       ("return", ReturnToken),
       ("print", PrintToken),
+      ("class", ClassToken),
       ("init", InitToken),
       ("super", SuperToken),
       ("extends", ExtendsToken))

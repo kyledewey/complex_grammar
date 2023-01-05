@@ -277,9 +277,9 @@ object ComplexParser {
     token(ClassToken) ~
     className ~
     opt(token(ExtendsToken) ~ className) ~
-    inCurlyBrackets(params ~ consDef ~ rep(methodDef)) ^^
+    inCurlyBrackets(rep(param ~ token(SemicolonToken)) ~ consDef ~ rep(methodDef)) ^^
     { case _ ~ name ~ opExtends ~ (params ~ consDef ~ methods) =>
-      ClassDef(name, opExtends.map(_._2), params, consDef, methods) }
+      ClassDef(name, opExtends.map(_._2), params.map(_._1), consDef, methods) }
   }
 
   lazy val program: P[Program] = {

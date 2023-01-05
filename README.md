@@ -47,7 +47,7 @@ stmt ::= param `=` exp `;` |                                     // variable dec
          `print` `(` exp `)` `;`                                 // printing
 consDef ::= `init` `(` params `)` `{` [`super` `(` exps `)` `;`] stmt* `}`
 methodDef ::= type var `(` params `)` `{` stmt* `}`
-cls ::= `class` clsName [`extends` clsName] `{` params consDef methodDef* `}
+cls ::= `class` clsName [`extends` clsName] `{` (param `;`)* consDef methodDef* `}
 program ::= cls* `{` stmt* `}`
 ```
 
@@ -106,6 +106,8 @@ clsName is a class name
 param ::= type var
 multiParam ::= param | param `,` multiParam
 params ::= epsilon | multiParam
+multiSemiParam ::= param | param `;` multiSemiParam
+paramsSemicolon ::= epsilon | multiSemiParam
 multiType ::= type | type `,` multiType
 types ::= epsilon | multiType
 primaryType ::= `int` | `bool` | clsName | `(` type `)`
@@ -142,7 +144,7 @@ stmt ::= param `=` exp `;` |                                     // variable dec
          `print` `(` exp `)`                                     // printing
 consDef ::= `init` `(` params `)` `{` [`super` `(` exps `)` `;`] stmt* `}`
 methodDef ::= type var `(` params `)` `{` stmt* `}`
-classDef ::= `class` clsName [`extends` clsName] `{` params consDef methodDef* `}
+classDef ::= `class` clsName [`extends` clsName] `{` (param `;`)* consDef methodDef* `}
 program ::= classDef* `{` stmt* `}`
 ```
 

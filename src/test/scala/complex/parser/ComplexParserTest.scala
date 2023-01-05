@@ -527,4 +527,79 @@ class ComplexParserTest extends AnyFlatSpec {
       parse("print(7);", stmt)
     }
   }
+
+  it should "handle a constructor definition without super" in {
+    assertResult(
+      ConsDef(
+        Seq(Param(IntType, Variable("x"))),
+        None,
+        Seq())) {
+      parse("init (int x) {}", consDef)
+    }
+  }
+
+  it should "handle a constructor definition with super" in {
+    assertResult(
+      ConsDef(
+        Seq(Param(IntType, Variable("x"))),
+        Some(Seq(VariableExp(Variable("x")))),
+        Seq())) {
+      parse("init (int x) { super(x); }", consDef)
+    }
+  }
+
+  it should "handle a method def" in {
+    assertResult(
+      MethodDef(
+        IntType,
+        Variable("id"),
+        Seq(Param(IntType, Variable("x"))),
+        Seq(ReturnStmt(VariableExp(Variable("x")))))) {
+      parse("int id(int x) { return x; }", methodDef)
+    }
+  }
+
+  val classDefString =
+    """class IntWrapper extends Object {
+         int value;
+         init(int value) {
+           super();
+           this.value = value;
+         }
+         int getValue() { return value; }
+       }"""
+  val classDefAst =
+    ClassDef(
+      ClassName("IntWrapper"),
+      Some(ClassName("Object")),
+      Seq(Param(IntType, Variable("value"))),
+      ConsDef(
+        Seq(Param(IntType, Variable("value"))),
+        Some(Seq()),
+        Seq(
+          AssignStmt(
+            ObjectAccessLhs(ThisExp, Variable("value")),
+            VariableExp(Variable("value"))))),
+      Seq(
+        MethodDef(
+          IntType,
+          Variable("getValue"),
+          Seq(),
+          Seq(ReturnStmt(VariableExp(Variable("value")))))))
+
+  it should "handle a class def" in {
+    assertResult(classDefAst) {
+      parse(classDefString, classDef)
+    }
+  }
+
+  it should "handle a program" in {
+    assertResult(
+      Program(
+        Seq(classDefAst),
+        Seq(PrintStmt(IntLiteralExp(7))))) {
+      val prog = classDefString + "{ print(7); }"
+      parse(prog, program)
+    }
+  }
 }
