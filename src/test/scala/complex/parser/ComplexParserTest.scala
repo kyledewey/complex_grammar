@@ -79,4 +79,34 @@ class ComplexParserTest extends AnyFlatSpec {
       parse("((int) => int)[]", theType)
     }
   }
+
+  it should "parse a variable expression" in {
+    assertResult(VariableExp(Variable("x"))) {
+      parse("x", exp)
+    }
+  }
+
+  it should "parse an int literal" in {
+    assertResult(IntLiteralExp(5)) {
+      parse("5", exp)
+    }
+  }
+
+  it should "parse true" in {
+    assertResult(BoolLiteralExp(true)) {
+      parse("true", exp)
+    }
+  }
+
+  it should "parse false" in {
+    assertResult(BoolLiteralExp(false)) {
+      parse("false", exp)
+    }
+  }
+
+  it should "parse this" in {
+    assertResult(ThisExp) {
+      parse("this", exp)
+    }
+  }
 }

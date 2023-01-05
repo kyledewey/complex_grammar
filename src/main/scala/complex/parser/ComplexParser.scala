@@ -71,6 +71,7 @@ object ComplexParser {
     (num ^^ (IntLiteralExp.apply _)) |
     (token(TrueToken) ^^^ BoolLiteralExp(true)) |
     (token(FalseToken) ^^^ BoolLiteralExp(false)) |
+    (token(ThisToken) ^^^ ThisExp) |
     inParens(exp) |
     (token(NewToken) ~ className ~ inParens(exps) ^^
       { case _ ~ cls ~ exps => NewObjectExp(cls, exps) }) |

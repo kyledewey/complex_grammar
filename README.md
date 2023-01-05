@@ -114,7 +114,7 @@ functionType ::= (`(` types `)` `=>`)* arrayType
 type ::= functionType
 multiExp ::= exp | exp `,` multiExp
 exps ::= epsilon | multiExp
-primaryExp ::= var | i | `true` | `false` | `(` exp `)` |
+primaryExp ::= var | i | `true` | `false` | `this` | `(` exp `)` |
                `new` clsName `(` exps `)` |
                `new` type `[` exp `]`
 dotExp ::= primaryExp (`.` var)*
