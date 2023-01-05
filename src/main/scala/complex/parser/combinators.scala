@@ -12,8 +12,21 @@ case class Failure(why: String) extends ParseResult[Nothing]
 
 case class ~[+A, +B](_1: A, _2: B)
 
+class ParseException(message: String) extends Exception(message)
+
 trait Parser[+A] extends ((List[Token] => ParseResult[A])) {
   self =>
+
+  // throws an exception if it failed to parse or tokens remained
+  def parseWhole(tokens: List[Token]): A = {
+    self.apply(tokens) match {
+      case Success(a, Nil) => a
+      case Success(_, head :: _) =>
+        throw new ParseException("Remaining tokens starting with: " + head)
+      case Failure(message) => throw new ParseException(message)
+    }
+  }
+  
   def flatMap[B](f: A => Parser[B]): Parser[B] = {
     new Parser[B] {
       def apply(tokens: List[Token]): ParseResult[B] = {

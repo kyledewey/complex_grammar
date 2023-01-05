@@ -46,6 +46,10 @@ object Tokenizer {
       ("init", InitToken),
       ("super", SuperToken),
       ("extends", ExtendsToken))
+
+  def tokenize(input: String): Seq[Token] = {
+    new Tokenizer(input).tokenize
+  }
 } // Tokenizer
 
 class Tokenizer(val input: String) {
@@ -59,7 +63,7 @@ class Tokenizer(val input: String) {
 
   def getChars(pos: Int, predicate: Char => Boolean): List[Char] = {
     def loop(curPos: Int, accum: List[Char]): List[Char] = {
-      getChar(pos).filter(predicate).map(c =>
+      getChar(curPos).filter(predicate).map(c =>
         loop(curPos + 1, c :: accum)).getOrElse(accum.reverse)
     }
     loop(pos, List())
@@ -112,5 +116,5 @@ class Tokenizer(val input: String) {
     loop(pos, List())
   } // tokenize
 
-  def tokenize(): Seq[Token] = tokenize(0)
+  def tokenize: Seq[Token] = tokenize(0)
 } // Tokenizer
