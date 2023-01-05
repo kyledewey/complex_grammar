@@ -53,16 +53,16 @@ object ComplexParser {
       brackets.foldLeft(t)((accum, _) => ArrayType(accum)) }
   }
 
-  lazy val types: P[Seq[Type]] = commaSep(theType)
-
   lazy val functionType: P[Type] = {
-    rep(inParens(types) ~ token(ArrowToken)) ~ theType ^^
+    rep(inParens(types) ~ token(ArrowToken)) ~ arrayType ^^
     { case paramGroups ~ returnType =>
       paramGroups.foldRight(returnType)((curGroup, accum) =>
         FunctionType(curGroup._1, accum)) }
   }
 
   lazy val theType: P[Type] = functionType
+
+  lazy val types: P[Seq[Type]] = commaSep(theType)
 
   lazy val exps: P[Seq[Exp]] = commaSep(exp)
 

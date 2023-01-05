@@ -110,7 +110,7 @@ multiType ::= type | type `,` multiType
 types ::= epsilon | multiType
 primaryType ::= `int` | `bool` | clsName | `(` type `)`
 arrayType ::= primaryType (`[` `]`)*
-functionType ::= (`(` types `)` `=>`)* type
+functionType ::= (`(` types `)` `=>`)* arrayType
 type ::= functionType
 multiExp ::= exp | exp `,` multiExp
 exps ::= epsilon | multiExp
