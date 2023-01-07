@@ -1,6 +1,8 @@
 # Compiled files
 *.class
 target
+.bsp
+project
 
 # Emacs temp files
 *~
