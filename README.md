@@ -31,7 +31,7 @@ exp ::= var | i | `true` | `false` | // AST leaves
         `new` type `[` exp `]`     | // creating a new array
         `(` type `)` exp |           // casting
         `(` params `)` `=>` exp |    // creating higher-order functions
-        exp `(` exps `)` |           // calling higher-order functions
+        exp `(` exps `)` |           // call
         `(` exp `)`                  // parenthesitized expression
 lhs ::= var |            // lefthand side of an assignment
         exp `.` var    | // access field
