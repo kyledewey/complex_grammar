@@ -1,0 +1,24 @@
+class IntWrapper {
+  int value;
+  init (int value) {
+    this.value = value;
+  }
+  int getValue() {
+    return this.value;
+  }
+  IntWrapper add(int amount) {
+    return new IntWrapper(this.value + amount);
+  }
+
+  (int) => IntWrapper addDeferred() {
+    return (int amount) => this.add(amount);
+  }
+}
+{
+  IntWrapper wrapper = new IntWrapper(5);
+  IntWrapper added1 = wrapper.add(6);
+  IntWrapper added2 = wrapper.addDeferred()(7);
+  print(wrapper.value);
+  print(added1.value);
+  print(added2.value);
+}

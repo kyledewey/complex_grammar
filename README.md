@@ -167,3 +167,10 @@ Call(Access(obj, someMethod), List(7))
 Is obj.someMethod a method, or is it a function?  No idea - need the typechecker to disambiguate.
 
 ((x == y) instanceof Boolean) == z
+
+## Running ##
+
+```console
+sbt
+runMain complex.Complex examples/class.complex
+```
