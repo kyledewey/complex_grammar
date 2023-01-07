@@ -1,4 +1,4 @@
-name := "proteus"
+name := "complex"
 
 version := "1.0"
 
