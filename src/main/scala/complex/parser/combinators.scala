@@ -50,17 +50,19 @@ trait Parser[+A] extends ((List[Token] => ParseResult[A])) {
   }
 
   def ~[B](other: => Parser[B]): Parser[~[A, B]] = {
+    lazy val evaluatedOther = other
     self.flatMap(a =>
       other.map(b =>
         new ~(a, b)))
   }
 
   def |[B >: A](other: => Parser[B]): Parser[B] = {
+    lazy val evaluatedOther = other
     new Parser[B] {
       def apply(tokens: List[Token]): ParseResult[B] = {
         self(tokens) match {
           case s@Success(_, _) => s
-          case Failure(_) => other(tokens)
+          case Failure(_) => evaluatedOther(tokens)
         }
       }
     }
@@ -68,18 +70,21 @@ trait Parser[+A] extends ((List[Token] => ParseResult[A])) {
 
   def ^^[B](f: A => B): Parser[B] = map(f)
 
-  def ^^^[B](b: => B): Parser[B] = ^^(_ => b)
+  def ^^^[B](b: => B): Parser[B] = {
+    lazy val evaluatedB = b
+    map(_ => evaluatedB)
+  }
 } // Parser
 
 object Parser {
-  def lift[A](pf: PartialFunction[Token, A], thing: String): Parser[A] = {
+  def lift[A](pf: PartialFunction[Token, A], expectedName: String): Parser[A] = {
     new Parser[A] {
       def apply(tokens: List[Token]): ParseResult[A] = {
         tokens match {
           case head :: tail if pf.isDefinedAt(head) => {
             Success(pf(head), tail)
           }
-          case head :: _ => Failure("Expected " + thing + "; found: " + head)
+          case head :: _ => Failure("Expected " + expectedName + "; found: " + head)
           case Nil => Failure("Out of tokens")
         }
       }
@@ -94,10 +99,10 @@ object Parser {
     }
   }
 
-  def failure[A](thing: String): Parser[A] = {
+  def failure[A](errorMessage: String): Parser[A] = {
     new Parser[A] {
       def apply(tokens: List[Token]): ParseResult[A] = {
-        Failure(thing)
+        Failure(errorMessage)
       }
     }
   }
@@ -108,49 +113,56 @@ object Parser {
 
   def opt[A](p: => Parser[A]): Parser[Option[A]] = {
     lazy val evaluatedP = p
-    (tokens) => {
-      evaluatedP(tokens) match {
-        case Success(a, rest) => Success(Some(a), rest)
-        case Failure(_) => Success(None, tokens)
+    new Parser[Option[A]] {
+      def apply(tokens: List[Token]): ParseResult[Option[A]] = {
+        evaluatedP(tokens) match {
+          case Success(a, rest) => Success(Some(a), rest)
+          case Failure(_) => Success(None, tokens)
+        }
       }
     }
   } // opt
 
+  // p*
   def rep[A](p: => Parser[A]): Parser[List[A]] = {
     lazy val evaluatedP = p
-    @scala.annotation.tailrec
-    def inner(tokens: List[Token], accum: List[A]): (List[Token], List[A]) = {
-      evaluatedP(tokens) match {
-        case Success(a, rest) => inner(rest, a :: accum)
-        case Failure(_) => (tokens, accum.reverse)
+    new Parser[List[A]] {
+      @scala.annotation.tailrec
+      def inner(tokens: List[Token], accum: List[A]): (List[Token], List[A]) = {
+        evaluatedP(tokens) match {
+          case Success(a, rest) => inner(rest, a :: accum)
+          case Failure(_) => (tokens, accum.reverse)
+        }
       }
-    }
 
-    (tokens) => {
-      val (rest, as) = inner(tokens, List())
-      Success(as, rest)
+      def apply(tokens: List[Token]): ParseResult[List[A]] = {
+        val (rest, as) = inner(tokens, List())
+        Success(as, rest)
+      }
     }
   } // rep
 
-  def filter[A](p: => Parser[A])(predicate: A => Boolean, thing: String): Parser[A] = {
+  def filter[A](p: => Parser[A])(predicate: A => Boolean, errorMessage: String): Parser[A] = {
     lazy val evaluatedP = p
-    (tokens) => {
-      evaluatedP(tokens) match {
-        case s@Success(a, _) if predicate(a) => s
-        case _ => Failure(thing)
+    new Parser[A] {
+      def apply(tokens: List[Token]): ParseResult[A] = {
+        evaluatedP(tokens) match {
+          case s@Success(a, _) if predicate(a) => s
+          case _ => Failure(errorMessage)
+        }
       }
     }
   } // filter
 
-  def rep1[A](p: => Parser[A], thing: String): Parser[List[A]] = {
-    filter(rep(p))(_.nonEmpty, thing)
+  def rep1[A](p: => Parser[A], errorMessage: String): Parser[List[A]] = {
+    filter(rep(p))(_.nonEmpty, errorMessage)
   } // rep1
 
-  def repsep[A, B](p: => Parser[A], delim: => Parser[B]): Parser[List[A]] = {
+  def repsep[A](p: => Parser[A], delim: => Parser[Any]): Parser[List[A]] = {
     opt(p ~ rep(delim ~ p)) ^^ ((op) => op.map( { case a ~ list => a :: list.map(_._2) }).getOrElse(List()))
   } // repsep
 
-  def rep1sep[A](p: => Parser[A], delim: => Parser[Any], thing: String): Parser[List[A]] = {
-    filter(repsep(p, delim))(_.nonEmpty, thing)
+  def rep1sep[A](p: => Parser[A], delim: => Parser[Any], errorMessage: String): Parser[List[A]] = {
+    filter(repsep(p, delim))(_.nonEmpty, errorMessage)
   } // rep1sep
 }
